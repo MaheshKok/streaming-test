@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>AI Assistant 🤓</title>
+    <meta name="viewport" content="initial-scale=1, width=device-width" />
+    <!-- Include necessary scripts -->
+    <script src="https://unpkg.com/react@17.0.2/umd/react.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/react-dom@17.0.2/umd/react-dom.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@material-ui/core@4.12.4/umd/material-ui.production.min.js" crossorigin></script>
+    <script src="https://unpkg.com/@babel/standalone@7.14.7/babel.min.js" crossorigin></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked@3.0.7/marked.min.js"></script>
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap" />
+    <link rel="stylesheet" href="https://fonts.googleapis.com/icon?family=Material+Icons" />
+    <style>
+        body { background-color: #121212; color: #ffffff; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+    <script type="text/babel">
+        const {
+            CssBaseline,
+            ThemeProvider,
+            Typography,
+            TextField,
+            Container,
+            createTheme,
+            Box,
+            CircularProgress,
+            Button,
+        } = MaterialUI;
+
+        const theme = createTheme({
+            palette: {
+                mode: 'dark',
+            },
+        });
+
+        function App() {
+            const [messages, setMessages] = React.useState([]);
+            const [inputValue, setInputValue] = React.useState("");
+            const [loading, setLoading] = React.useState(false);
+            const [ws, setWs] = React.useState(null);
+
+            React.useEffect(() => {
+                const websocket = new WebSocket("ws://localhost:8000/ws");
+                setWs(websocket);
+
+                websocket.onmessage = (event) => {
+                    setLoading(false);
+                    const data = event.data;
+                    setMessages(prevMessages => {
+                        const lastMessage = prevMessages[prevMessages.length - 1];
+                        if (lastMessage && lastMessage.role === 'assistant' && !lastMessage.isComplete) {
+                            // Update the last assistant message
+                            const updatedMessage = { ...lastMessage, content: lastMessage.content + data };
+                            return [...prevMessages.slice(0, -1), updatedMessage];
+                        } else {
+                            // Add new assistant message
+                            return [...prevMessages, { role: 'assistant', content: data, isComplete: false }];
+                        }
+                    });
+                };
+
+                websocket.onclose = () => {
+                    console.log("WebSocket connection closed");
+                };
+
+                return () => {
+                    websocket.close();
+                };
+            }, []);
+
+            const handleSend = () => {
+                if (!loading && inputValue.trim() !== "") {
+                    setMessages(prevMessages => [...prevMessages, { role: 'user', content: inputValue }]);
+                    ws.send(inputValue);
+                    setInputValue("");
+                    setLoading(true);
+                }
+            };
+
+            return (
+                <ThemeProvider theme={theme}>
+                    <CssBaseline />
+                    <Container maxWidth="md">
+                        <Box sx={{ my: 4 }}>
+                            <Typography variant="h4" component="h1" gutterBottom>
+                                AI Assistant 🤓
+                            </Typography>
+                            <Box display="flex" mb={2}>
+                                <TextField
+                                    label="Ask me anything"
+                                    variant="outlined"
+                                    fullWidth
+                                    value={inputValue}
+                                    onChange={(e) => setInputValue(e.target.value)}
+                                    onKeyUp={(e) => {
+                                        if (e.key === "Enter") {
+                                            handleSend();
+                                        }
+                                    }}
+                                />
+                                <Button variant="contained" color="primary" onClick={handleSend} disabled={loading} style={{ marginLeft: '8px' }}>
+                                    Send
+                                </Button>
+                            </Box>
+                            {messages.map((msg, index) => (
+                                <Box key={index} mb={2}>
+                                    <Typography variant="subtitle2" color={msg.role === 'user' ? 'primary' : 'secondary'}>
+                                        {msg.role === 'user' ? 'You' : 'Assistant'}
+                                    </Typography>
+                                    <Typography
+                                        component="div"
+                                        dangerouslySetInnerHTML={{ __html: marked.parse(msg.content) }}
+                                        style={{ whiteSpace: 'pre-wrap' }}
+                                    />
+                                </Box>
+                            ))}
+                            {loading && (
+                                <Box display="flex" justifyContent="center" my={4}>
+                                    <CircularProgress />
+                                </Box>
+                            )}
+                        </Box>
+                    </Container>
+                </ThemeProvider>
+            );
+        }
+
+        ReactDOM.render(
+            <App />,
+            document.getElementById('root')
+        );
+    </script>
+</body>
+</html>
