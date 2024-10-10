@@ -28,19 +28,34 @@ const Assistant = ({ token, onLogout, user }) => {
 	const wsRef = useRef(null);
 	const [threads, setThreads] = useState([]);
 	const [currentThreadId, setCurrentThreadId] = useState(null);
+	const [assistants, setAstAssistantss] = useState([]);
+	const [currentAssistantId, setsetCurrentAssistantId] = useState(null);
 	const [wsConnected, setWsConnected] = useState(false);
 
 	useEffect(() => {
 		// Fetch all threads when the component mounts
-		fetch(
-			`${process.env.REACT_APP_API_URL}/api/assistant/conversations?token=${token}`
-		)
+		fetch(`${process.env.REACT_APP_API_URL}/api/threads?token=${token}`)
 			.then((response) => response.json())
 			.then((data) => {
-				setThreads(data.threads);
+				const threadIds = data.map((item) => item.openai_thread_id);
+				setThreads(threadIds);
 			})
 			.catch((error) => {
 				console.error("Error fetching threads:", error);
+			});
+	}, [token]);
+
+	useEffect(() => {
+		// Fetch all threads when the component mounts
+		fetch(`${process.env.REACT_APP_API_URL}/api/assistants?token=${token}`)
+			.then((response) => response.json())
+			.then((data) => {
+				const assistantIds = data.map((item) => item.openai_assistant_id);
+				setAstAssistantss(assistantIds);
+				setsetCurrentAssistantId(assistantIds[0]);
+			})
+			.catch((error) => {
+				console.error("Error fetching assistants:", error);
 			});
 	}, [token]);
 
@@ -65,7 +80,7 @@ const Assistant = ({ token, onLogout, user }) => {
 		}
 
 		const websocket = new WebSocket(
-			`${process.env.REACT_APP_WS_URL}/api/assistant/ws?token=${token}&thread_id=${threadId}`
+			`${process.env.REACT_APP_WS_URL}/api/assistants/ws?token=${token}&thread_id=${threadId}&assistant_id=${currentAssistantId}`
 		);
 
 		websocket.onopen = () => {
@@ -118,15 +133,13 @@ const Assistant = ({ token, onLogout, user }) => {
 	};
 
 	const handleCreateNew = () => {
-		fetch(
-			`${process.env.REACT_APP_API_URL}/api/assistant/conversations?token=${token}`,
-			{
-				method: "POST",
-			}
-		)
+		fetch(`${process.env.REACT_APP_API_URL}/api/threads?token=${token}`, {
+			method: "POST",
+		})
 			.then((response) => response.json())
 			.then((data) => {
-				const newThreadId = data.thread_id;
+				console.log(`threads: ${JSON.stringify(data)}`);
+				const newThreadId = data.openai_thread_id;
 				setThreads([...threads, newThreadId]);
 				setCurrentThreadId(newThreadId);
 				setMessages([]);
@@ -139,6 +152,12 @@ const Assistant = ({ token, onLogout, user }) => {
 	const handleSelectThread = (event) => {
 		const threadId = event.target.value;
 		setCurrentThreadId(threadId);
+		setMessages([]);
+	};
+
+	const handleSelectAssistant = (event) => {
+		const assistantId = event.target.value;
+		setsetCurrentAssistantId(assistantId);
 		setMessages([]);
 	};
 
@@ -192,7 +211,7 @@ const Assistant = ({ token, onLogout, user }) => {
 					</Toolbar>
 				</AppBar>
 				<Box sx={{ my: 4 }}>
-					<FormControl fullWidth>
+					<FormControl fullWidth sx={{ mb: 4 }}>
 						<InputLabel id="thread-select-label">Select Thread</InputLabel>
 						<Select
 							labelId="thread-select-label"
@@ -215,6 +234,24 @@ const Assistant = ({ token, onLogout, user }) => {
 						>
 							Create New Thread
 						</Button>
+					</FormControl>
+					<FormControl fullWidth>
+						<InputLabel id="assistant-select-label">
+							Select Assistant
+						</InputLabel>
+						<Select
+							labelId="assistant-select-label"
+							value={currentAssistantId || ""}
+							label="Select Assistant"
+							onChange={handleSelectAssistant}
+						>
+							{assistants &&
+								assistants.map((assistantId) => (
+									<MenuItem key={assistantId} value={assistantId}>
+										{assistantId}
+									</MenuItem>
+								))}
+						</Select>
 					</FormControl>
 					<Box sx={{ mt: 4 }}>
 						{messages.map((msg, index) => (
