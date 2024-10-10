@@ -2,6 +2,9 @@
 
 This project was generated using fastapi_template.
 
+A Working Demo of this app can be found here:
+https://www.loom.com/share/6286460092384496bafb973de460507a
+
 ## Poetry
 
 This project uses poetry. It's a modern dependency management
