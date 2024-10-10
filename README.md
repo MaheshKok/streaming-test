@@ -12,6 +12,110 @@ tool.
 
 To run the project use this set of commands:
 
+# GainzAI Assignment
+
+## Frontend
+
+The frontend code is located in the `gainz_assignment_fe` directory.
+
+### Prerequisites
+
+- **Node.js**: Ensure you have Node.js installed on your machine. You can download it from [Node.js Official Website](https://nodejs.org/).
+
+### Installation and Setup
+
+1. **Navigate to the Frontend Directory**
+
+   Open your terminal or command prompt and navigate to the frontend directory:
+
+   ```bash
+   cd gainz_assignment_fe
+   ```
+
+2. **Install Dependencies**
+
+   Install the necessary Node.js packages by running:
+
+   ```bash
+   npm install
+   ```
+
+3. **Start the Development Server**
+
+   Launch the frontend development server with the following command:
+
+   ```bash
+   npm start
+   ```
+
+4. **Access the Application**
+
+   Once the server is running, open your web browser and navigate to:
+
+   [http://localhost:3000](http://localhost:3000)
+
+   Your application should now be up and running!
+
+### Additional Scripts
+
+Here are some additional scripts you might find useful:
+
+- **Build for Production**
+
+  To build the app for production, run:
+
+  ```bash
+  npm run build
+  ```
+
+  This will create an optimized production build in the `build` folder.
+
+- **Run Tests**
+
+  To execute tests, use:
+
+  ```bash
+  npm test
+  ```
+
+- **Eject Configuration**
+
+  **Note:** This is a one-way operation. Once you eject, you can't go back!
+
+  To eject the configuration, run:
+
+  ```bash
+  npm run eject
+  ```
+
+### Troubleshooting
+
+- **Port Already in Use**
+
+  If you encounter an error indicating that port `3000` is already in use, you can specify a different port by setting the `PORT` environment variable:
+
+  ```bash
+  PORT=3001 npm start
+  ```
+
+- **Missing Dependencies**
+
+  If you run into issues related to missing packages, try reinstalling the dependencies:
+
+  ```bash
+  npm install --force
+  ```
+
+### Useful Links
+
+- [Create React App Documentation](https://create-react-app.dev/docs/getting-started/)
+- [Material-UI (MUI) Documentation](https://mui.com/getting-started/installation/)
+- [React Documentation](https://reactjs.org/docs/getting-started.html)
+
+---
+
+Feel free to reach out if you encounter any issues or have questions regarding the setup!
+
 ```bash
 poetry install
 poetry run python -m gainzai_assignment
@@ -50,21 +154,34 @@ docker-compose build
 
 ```bash
 $ tree "gainzai_assignment"
-gainzai_assignment
-├── conftest.py  # Fixtures for all tests.
-├── db  # module contains db configurations
-│   ├── dao  # Data Access Objects. Contains different classes to interact with database.
-│   └── models  # Package contains different models for ORMs.
-├── __main__.py  # Startup script. Starts uvicorn.
-├── services  # Package for different external services such as rabbit or redis etc.
-├── settings.py  # Main configuration settings for project.
-├── static  # Static content.
-├── tests  # Tests for project.
-└── web  # Package contains web server. Handlers, startup config.
-    ├── api  # Package with all handlers.
-    │   └── router.py  # Main router.
-    ├── application.py  # FastAPI application configuration.
-    └── lifespan.py  # Contains actions to perform on startup and shutdown.
+gainzai_assignment/
+├── gainz_assignment_fe/
+│   ├── public/
+│   │   └── index.html
+│   ├── src/
+│   │   ├── components/
+│   │   │   └── Assistant.js
+│   │   ├── services/
+│   │   │   └── WebSocketManager.js
+│   │   ├── theme.js
+│   │   ├── App.js
+│   │   └── index.js
+│   ├── package.json
+│   ├── package-lock.json
+│   └── .env
+├── web/
+│   ├── static/
+│   │   └── assistant_index.html
+│   ├── templates/
+│   │   └── build/
+│   │       └── index.html
+│   ├── manage.py
+│   ├── requirements.txt
+│   ├── .env
+│   ├── urls.py
+│   └── views.py
+├── README.md
+└── ... (other project files)
 ```
 
 ## Configuration
@@ -86,6 +203,7 @@ An example of .env file:
 GAINZAI_ASSIGNMENT_RELOAD="True"
 GAINZAI_ASSIGNMENT_PORT="8000"
 GAINZAI_ASSIGNMENT_ENVIRONMENT="dev"
+GAINZAI_ASSIGMENT_OPENAI_KEY="open-api-key"
 ```
 
 You can read more about BaseSettings class here: https://pydantic-docs.helpmanual.io/usage/settings/
