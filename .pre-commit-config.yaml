@@ -1,0 +1,36 @@
+---
+# See https://pre-commit.com for more information
+# See https://pre-commit.com/hooks.html for more hooks
+repos:
+    - repo: local
+      hooks:
+          - id: isort
+            name: Sort imports with isort
+            entry: poetry run isort
+            language: system
+            types: [ python ]
+            args: [ "--profile", "black" ]
+
+          - id: black
+            name: Format with Black
+            entry: poetry run black
+            language: system
+            types: [python]
+
+          - id: ruff
+            name: Check with Ruff
+            entry: poetry run ruff
+            language: system
+            pass_filenames: false
+            always_run: true
+            args: ["check", "gainzai_assignment", "tests", "--fix"]
+
+          - id: mypy
+            name: Validate types with MyPy
+            entry: poetry run mypy
+            language: system
+            types: [python]
+            pass_filenames: false
+            args:
+              - "gainzai_assignment"
+

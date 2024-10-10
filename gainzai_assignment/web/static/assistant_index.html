@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="en">
+    <head>
+        <meta charset="utf-8" />
+        <title>AI Assistant 🤓</title>
+        <meta name="viewport" content="initial-scale=1, width=device-width" />
+        <!-- Include necessary scripts -->
+        <script
+            src="https://unpkg.com/react@17.0.2/umd/react.production.min.js"
+            crossorigin
+        ></script>
+        <script
+            src="https://unpkg.com/react-dom@17.0.2/umd/react-dom.production.min.js"
+            crossorigin
+        ></script>
+        <script
+            src="https://unpkg.com/@material-ui/core@4.12.4/umd/material-ui.production.min.js"
+            crossorigin
+        ></script>
+        <script
+            src="https://unpkg.com/@babel/standalone@7.14.7/babel.min.js"
+            crossorigin
+        ></script>
+        <script src="https://cdn.jsdelivr.net/npm/marked@3.0.7/marked.min.js"></script>
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/css2?family=Roboto:wght@300;400;500;600;700&display=swap"
+        />
+        <link
+            rel="stylesheet"
+            href="https://fonts.googleapis.com/icon?family=Material+Icons"
+        />
+        <style>
+            body {
+                background-color: #121212;
+                color: #ffffff;
+            }
+        </style>
+    </head>
+    <body>
+        <div id="root"></div>
+        <script type="text/babel">
+            const { useState, useEffect } = React;
+            const {
+                AppBar,
+                Toolbar,
+                Typography,
+                CssBaseline,
+                Container,
+                Box,
+                TextField,
+                Button,
+                Select,
+                MenuItem,
+                FormControl,
+                InputLabel,
+                createTheme,
+                ThemeProvider,
+                CircularProgress,
+                List,
+                ListItem,
+                ListItemText,
+                Paper,
+            } = MaterialUI;
+
+            const theme = createTheme({
+                palette: {
+                    mode: "dark",
+                },
+            });
+
+            function Register({ onRegisterSuccess, switchToLogin }) {
+                const [email, setEmail] = useState("");
+                const [password, setPassword] = useState("");
+                const [message, setMessage] = useState("");
+
+                const handleRegister = async () => {
+                    try {
+                        const response = await fetch("/api/auth/register", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/json",
+                            },
+                            body: JSON.stringify({ email, password }),
+                        });
+
+                        if (response.ok) {
+                            setMessage("Registration successful! Please log in.");
+                            onRegisterSuccess();
+                        } else {
+                            const data = await response.json();
+                            setMessage(data.detail || "Registration failed.");
+                        }
+                    } catch (error) {
+                        setMessage("An error occurred during registration.");
+                    }
+                };
+
+                return (
+                    <Container maxWidth="sm">
+                        <Box my={4}>
+                            <Typography variant="h4" gutterBottom>
+                                Register
+                            </Typography>
+                            <TextField
+                                label="Email"
+                                variant="outlined"
+                                fullWidth
+                                margin="normal"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                            <TextField
+                                label="Password"
+                                type="password"
+                                variant="outlined"
+                                fullWidth
+                                margin="normal"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                            <Box display="flex" alignItems="center" mt={2}>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={handleRegister}
+                                >
+                                    Register
+                                </Button>
+                                <Button
+                                    variant="text"
+                                    color="secondary"
+                                    onClick={switchToLogin}
+                                    style={{ marginLeft: "8px" }}
+                                >
+                                    Back to Login
+                                </Button>
+                            </Box>
+                            {message && (
+                                <Typography color="error" variant="body2" mt={2}>
+                                    {message}
+                                </Typography>
+                            )}
+                        </Box>
+                    </Container>
+                );
+            }
+
+            function Login({ onLoginSuccess, switchToRegister }) {
+                const [email, setEmail] = useState("");
+                const [password, setPassword] = useState("");
+                const [message, setMessage] = useState("");
+
+                const handleLogin = async () => {
+                    try {
+                        const response = await fetch("/api/auth/jwt/login", {
+                            method: "POST",
+                            headers: {
+                                "Content-Type": "application/x-www-form-urlencoded",
+                            },
+                            body: new URLSearchParams({
+                                username: email,
+                                password: password,
+                            }),
+                        });
+
+                        if (response.ok) {
+                            const data = await response.json();
+                            const token = data.access_token;
+                            localStorage.setItem("access_token", token);
+                            setMessage("Login successful!");
+                            onLoginSuccess(token);
+                        } else {
+                            const data = await response.json();
+                            setMessage(data.detail || "Login failed.");
+                        }
+                    } catch (error) {
+                        setMessage("An error occurred during login.");
+                    }
+                };
+
+                return (
+                    <Container maxWidth="sm">
+                        <Box my={4}>
+                            <Typography variant="h4" gutterBottom>
+                                Login
+                            </Typography>
+                            <TextField
+                                label="Email"
+                                variant="outlined"
+                                fullWidth
+                                margin="normal"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                            />
+                            <TextField
+                                label="Password"
+                                type="password"
+                                variant="outlined"
+                                fullWidth
+                                margin="normal"
+                                value={password}
+                                onChange={(e) => setPassword(e.target.value)}
+                            />
+                            <Box display="flex" alignItems="center" mt={2}>
+                                <Button
+                                    variant="contained"
+                                    color="primary"
+                                    onClick={handleLogin}
+                                >
+                                    Login
+                                </Button>
+                                <Button
+                                    variant="text"
+                                    color="secondary"
+                                    onClick={switchToRegister}
+                                    style={{ marginLeft: "8px" }}
+                                >
+                                    Register
+                                </Button>
+                            </Box>
+                            {message && (
+                                <Typography color="error" variant="body2" mt={2}>
+                                    {message}
+                                </Typography>
+                            )}
+                        </Box>
+                    </Container>
+                );
+            }
+
+            function Assistant_2({ token, onLogout }) {
+                const [messages, setMessages] = React.useState([]);
+                const [inputValue, setInputValue] = React.useState("");
+                const [loading, setLoading] = React.useState(false);
+                const [ws, setWs] = React.useState(null);
+                const [ threads, setThreads ] = React.useState([]);
+                const [ currentThreadId, setCurrentThreadId ] = React.useState(null);
+
+                React.useEffect(() => {
+                    // Fetch all threads when the component mounts
+                    fetch(`/api/assistant/conversations?token=${token}`)
+                        .then((response) => response.json())
+                        .then((data) => {
+                            console.log(`Threads: ${JSON.stringify(data)}`)
+                            setThreads(data.threads);
+                        })
+                        .catch((error) => {
+                            console.error("Error fetching threads:", error);
+                        });
+                }, []);
+
+                const handleCreateNew = () => {
+                    fetch(`/api/assistant/conversations?token=${token}`, {
+                        method: "POST",
+                    })
+                        .then((response) => response.json())
+                        .then((data) => {
+                            console.log(`New thread data: ${JSON.stringify(data)}`)
+                            const newThreadId = data.thread_id;
+                            setThreads([...threads, newThreadId]);
+                            setCurrentThreadId(newThreadId);
+                            setMessages([]);
+                            connectWebSocket(newThreadId);
+                        })
+                        .catch((error) => {
+                            console.error("Error creating new thread:", error);
+                        });
+                };
+
+                const handleSelectThread = (event) => {
+                    const threadId = event.target.value;
+                    setCurrentThreadId(threadId);
+                    setMessages([]);
+                    connectWebSocket(threadId);
+                };
+
+                const connectWebSocket = (threadId) => {
+                    if (ws) {
+                        ws.close();
+                    }
+
+                    const websocket = new WebSocket(
+                        `ws://localhost:8000/api/assistant/ws?token=${token}&thread_id=${threadId}`
+                    );
+                    setWs(websocket);
+
+                    websocket.onmessage = (event) => {
+                        setLoading(false);
+                        const data = event.data;
+                        setMessages((prevMessages) => {
+                            const lastMessage = prevMessages[prevMessages.length - 1];
+                            if (
+                                lastMessage &&
+                                lastMessage.role === "assistant" &&
+                                !lastMessage.isComplete
+                            ) {
+                                // Update the last assistant message
+                                const updatedMessage = {
+                                    ...lastMessage,
+                                    content: lastMessage.content + data,
+                                };
+                                return [...prevMessages.slice(0, -1), updatedMessage];
+                            } else {
+                                // Add new assistant message
+                                return [
+                                    ...prevMessages,
+                                    {
+                                        role: "assistant",
+                                        content: data,
+                                        isComplete: false,
+                                    },
+                                ];
+                            }
+                        });
+                    };
+
+                    websocket.onclose = () => {
+                        console.log("WebSocket connection closed");
+                    };
+
+                    return () => {
+                        websocket.close();
+                    };
+                };
+
+                const handleSend = () => {
+                    if (!loading && inputValue.trim() !== "") {
+                        setMessages((prevMessages) => [
+                            ...prevMessages,
+                            { role: "user", content: inputValue },
+                        ]);
+                        ws.send(inputValue);
+                        setInputValue("");
+                        setLoading(true);
+                    }
+                };
+
+                const handleLogout = () => {
+                    localStorage.removeItem("access_token");
+                    if (ws) {
+                        ws.close();
+                    }
+                    onLogout();
+                };
+
+                return (
+                    <ThemeProvider theme={theme}>
+                        <CssBaseline />
+                        <Container maxWidth="md">
+                            <Box sx={{ my: 4 }}>
+                                <Box
+                                    display="flex"
+                                    justifyContent="space-between"
+                                    alignItems="center"
+                                    mb={2}
+                                >
+                                    <Typography variant="h4">
+                                        AI Assistant 🤖
+                                    </Typography>
+                                    <Button
+                                        variant="outlined"
+                                        color="secondary"
+                                        onClick={handleLogout}
+                                    >
+                                        Logout
+                                    </Button>
+                                </Box>
+                                <Box mt={2} mb={2}>
+                                    <FormControl variant="outlined" fullWidth>
+                                        <InputLabel id="thread-select-label">
+                                            Select a Conversation
+                                        </InputLabel>
+                                        <Select
+                                            labelId="thread-select-label"
+                                            id="thread-select"
+                                            value={currentThreadId}
+                                            onChange={handleSelectThread}
+                                            label="Select a Conversation"
+                                        >
+                                            <MenuItem value="">
+                                                <em>None</em>
+                                            </MenuItem>
+                                            {threads &&
+                                                threads.map((threadId) => (
+                                                    <MenuItem
+                                                        key={threadId}
+                                                        value={threadId}
+                                                    >
+                                                        {threadId}
+                                                    </MenuItem>
+                                                ))}
+                                        </Select>
+                                    </FormControl>
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={handleCreateNew}
+                                        style={{ marginTop: "16px" }}
+                                    >
+                                        Create New Conversation
+                                    </Button>
+                                </Box>
+                                <Box display="flex" mb={2}>
+                                    <TextField
+                                        label="Ask me anything"
+                                        variant="outlined"
+                                        fullWidth
+                                        value={inputValue}
+                                        onChange={(e) => setInputValue(e.target.value)}
+                                        onKeyUp={(e) => {
+                                            if (e.key === "Enter") {
+                                                handleSend();
+                                            }
+                                        }}
+                                    />
+                                    <Button
+                                        variant="contained"
+                                        color="primary"
+                                        onClick={handleSend}
+                                        disabled={loading}
+                                        style={{ marginLeft: "8px" }}
+                                    >
+                                        Send
+                                    </Button>
+                                </Box>
+                                {messages &&
+                                    messages.map((msg, index) => (
+                                        <Box key={index} mb={2}>
+                                            <Typography
+                                                variant="subtitle2"
+                                                color={
+                                                    msg.role === "user"
+                                                        ? "primary"
+                                                        : "secondary"
+                                                }
+                                            >
+                                                {msg.role === "user"
+                                                    ? "You"
+                                                    : "Assistant"}
+                                            </Typography>
+                                            <Typography
+                                                component="div"
+                                                dangerouslySetInnerHTML={{
+                                                    __html: marked.parse(msg.content),
+                                                }}
+                                                style={{ whiteSpace: "pre-wrap" }}
+                                            />
+                                        </Box>
+                                    ))}
+                                {loading && (
+                                    <Box display="flex" justifyContent="center" my={4}>
+                                        <CircularProgress />
+                                    </Box>
+                                )}
+                            </Box>
+                        </Container>
+                    </ThemeProvider>
+                );
+            }
+
+            function App() {
+                const [token, setToken] = useState(
+                    localStorage.getItem("access_token") || ""
+                );
+                const [showRegister, setShowRegister] = useState(false);
+
+                const handleLoginSuccess = (receivedToken) => {
+                    setToken(receivedToken);
+                };
+
+                const handleRegisterSuccess = () => {
+                    setShowRegister(false);
+                };
+
+                const handleLogout = () => {
+                    setToken("");
+                };
+
+                const switchToRegister = () => {
+                    setShowRegister(true);
+                };
+
+                const switchToLogin = () => {
+                    setShowRegister(false);
+                };
+
+                if (!token) {
+                    return showRegister ? (
+                        <Register
+                            onRegisterSuccess={handleRegisterSuccess}
+                            switchToLogin={switchToLogin}
+                        />
+                    ) : (
+                        <Login
+                            onLoginSuccess={handleLoginSuccess}
+                            switchToRegister={switchToRegister}
+                        />
+                    );
+                }
+
+                return <Assistant_2 token={token} onLogout={handleLogout} />;
+            }
+
+            ReactDOM.render(
+                <ThemeProvider theme={theme}>
+                    <CssBaseline />
+                    <App />
+                </ThemeProvider>,
+                document.getElementById("root")
+            );
+        </script>
+    </body>
+</html>

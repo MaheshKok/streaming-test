@@ -1,0 +1,70 @@
+services:
+  api: &main_app
+    build:
+      context: .
+      dockerfile: ./Dockerfile
+    image: gainzai_assignment:${GAINZAI_ASSIGNMENT_VERSION:-latest}
+    restart: always
+    env_file:
+      - .env
+    depends_on:
+      db:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    environment:
+      GAINZAI_ASSIGNMENT_HOST: 0.0.0.0
+      GAINZAI_ASSIGNMENT_DB_HOST: gainzai_assignment-db
+      GAINZAI_ASSIGNMENT_DB_PORT: 5432
+      GAINZAI_ASSIGNMENT_DB_USER: gainzai_assignment
+      GAINZAI_ASSIGNMENT_DB_PASS: gainzai_assignment
+      GAINZAI_ASSIGNMENT_DB_BASE: gainzai_assignment
+      GAINZAI_ASSIGNMENT_REDIS_HOST: gainzai_assignment-redis
+
+  db:
+    image: postgres:16.3-bullseye
+    hostname: gainzai_assignment-db
+    environment:
+      POSTGRES_PASSWORD: "gainzai_assignment"
+      POSTGRES_USER: "gainzai_assignment"
+      POSTGRES_DB: "gainzai_assignment"
+    volumes:
+      - gainzai_assignment-db-data:/var/lib/postgresql/data
+    restart: always
+    healthcheck:
+      test: pg_isready -U gainzai_assignment
+      interval: 2s
+      timeout: 3s
+      retries: 40
+
+  migrator:
+    image: gainzai_assignment:${GAINZAI_ASSIGNMENT_VERSION:-latest}
+    restart: "no"
+    command: alembic upgrade head
+    environment:
+      GAINZAI_ASSIGNMENT_DB_HOST: gainzai_assignment-db
+      GAINZAI_ASSIGNMENT_DB_PORT: 5432
+      GAINZAI_ASSIGNMENT_DB_USER: gainzai_assignment
+      GAINZAI_ASSIGNMENT_DB_PASS: gainzai_assignment
+      GAINZAI_ASSIGNMENT_DB_BASE: gainzai_assignment
+    depends_on:
+      db:
+        condition: service_healthy
+
+  redis:
+    image: bitnami/redis:6.2.5
+    hostname: "gainzai_assignment-redis"
+    restart: always
+    environment:
+      ALLOW_EMPTY_PASSWORD: "yes"
+    healthcheck:
+      test: redis-cli ping
+      interval: 1s
+      timeout: 3s
+      retries: 50
+
+
+
+volumes:
+  gainzai_assignment-db-data:
+    name: gainzai_assignment-db-data
